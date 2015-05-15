@@ -46,10 +46,10 @@ class xcname:
             38: 'A6'
         }
 
-    '''
-    Validate domain is expired
-    '''
     def is_expired( self, domain ):
+        '''
+        Validate domain is expired
+        '''
         self.statusmsg( 'Checking if ' + domain + ' is expired...' )
         if domain in self.domain_cache:
             return self.domain_cache[ domain ]
@@ -60,10 +60,10 @@ class xcname:
             self.domain_cache[ domain ] = expired
             return expired
 
-    '''
-    Status messages
-    '''
     def statusmsg( self, msg, mtype = 'status' ):
+        '''
+        Status messages
+        '''
         if mtype == 'status':
             print '[ STATUS ] ' + msg
         elif mtype == 'warning':
@@ -73,22 +73,22 @@ class xcname:
         elif mtype == 'success':
             print bcolors.OKGREEN + '[ SUCCESS ] ' + msg + bcolors.ENDC
 
-    ''' 
-    Turn DNS type number into it's corresponding DNS record name
-    e.g. 5 => CNAME, 1 => A
-    '''
     def typenum_to_name( self, num ):
+        ''' 
+        Turn DNS type number into it's corresponding DNS record name
+        e.g. 5 => CNAME, 1 => A
+        '''
         if num in self.RECORD_MAP:
             return self.RECORD_MAP[ num ]
         else:
             # Some record type we don't recognize
             return "UNK"
 
-    '''
-    Timeout handler to hack around a bug in dnspython with AXFR not obeying it's timeouts 
-    '''
     @contextmanager
     def time_limit( self, seconds ):
+        '''
+        Timeout handler to hack around a bug in dnspython with AXFR not obeying it's timeouts 
+        '''
         def signal_handler(signum, frame):
             raise Exception("TIMEOUT")
         signal.signal(signal.SIGALRM, signal_handler)
@@ -98,10 +98,10 @@ class xcname:
         finally:
             signal.alarm(0)
 
-    '''
-    Attempts a zone transfer on all nameservers and returns a list of CNAME references if successful
-    '''
     def get_zone_cnames( self, nameservers ):
+        '''
+        Attempts a zone transfer on all nameservers and returns a list of CNAME references if successful
+        '''
         ret_dns_data = {}
         for nameserver in nameservers:
             self.statusmsg( 'Getting DNS data from ' + nameserver )
@@ -131,10 +131,10 @@ class xcname:
 
         return ret_dns_data
 
-    '''
-    Filters the DNS record dict returns from get_zone_cnames() to non-relative records for expired domain checking
-    '''
     def non_relative_filter( self, dns_data, filter_localhost = True ):
+        '''
+        Filters the DNS record dict returns from get_zone_cnames() to non-relative records for expired domain checking
+        '''
         ret_dict = {}
         for key, value in dns_data.iteritems():
             if value[-1] == ".":
@@ -145,10 +145,10 @@ class xcname:
                     ret_dict[ key ] = value
         return ret_dict
 
-    '''
-    Check to see if CNAME is pointing to expired domain
-    '''
     def get_cname( self, domain ):
+        '''
+        Check to see if CNAME is pointing to expired domain
+        '''
         try:
             answer = dns.resolver.query( domain, "CNAME" )
             if len( answer ) > 0:
@@ -157,13 +157,12 @@ class xcname:
             self.statusmsg( 'No answer received from DNS server' )
         except dns.resolver.NXDOMAIN:
             self.statusmsg( 'NXDOMAIN, dead end' )
-            pass
         return False
 
-    '''
-    Recursively crawl single CNAME record for expired domain pointer
-    '''
     def scan_cname( self, domain, initial = False ):
+        '''
+        Recursively crawl single CNAME record for expired domain pointer
+        '''
         if initial:
             self.statusmsg( 'Checking ' + domain + ' for expired CNAME records...' )
         base_domain = self.parse_tld( domain )
@@ -182,18 +181,18 @@ class xcname:
                 return pointed_domain
         return False
 
-    '''
-    Prints dicts in a JSON pretty sort of way
-    '''
     def pprint( self, input_dict ):
+        '''
+        Prints dicts in a JSON pretty sort of way
+        '''
         print json.dumps(input_dict, sort_keys=True, indent=4, separators=(',', ': '))
 
-    '''
-    Query the list of authoritative nameservers for a domain
-
-    It is important to query all of these as it only takes one misconfigured server to give away the zone.
-    '''
     def get_nameserver_list( self, domain ):
+        '''
+        Query the list of authoritative nameservers for a domain
+
+        It is important to query all of these as it only takes one misconfigured server to give away the zone.
+        '''
         try:
             answers = dns.resolver.query( domain, 'NS' )
         except dns.resolver.NXDOMAIN:
@@ -213,12 +212,11 @@ class xcname:
             nameservers.append( str( rdata ) )
         return nameservers
 
-    '''
-    Parse DNS CNAME external pointer to get the base domain (stolen from moloch's source code, sorry buddy)
-    '''
     def parse_tld( self, domain ):
-        ''' Little extra parsing to accurately return a TLD string '''
-        url = 'http://' + str( domain )# Hack to get parse_tld to work with us
+        '''
+        Parse DNS CNAME external pointer to get the base domain (stolen from moloch's source code, sorry buddy)
+        '''
+        url = 'http://' + str( domain ) # Hack to get parse_tld to work with us
         tld = tldextract.extract(url)
         if tld.suffix == '':
             return tld.domain
