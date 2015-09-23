@@ -26,3 +26,4 @@ Print nameservers for a specific domain
 ```
 ./xcname.py -g GANDI_API_KEY -d example.com -ns
 ```
+
