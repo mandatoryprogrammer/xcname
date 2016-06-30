@@ -126,8 +126,6 @@ class xcname:
             except Exception as inst:
                 if len( inst.args ) != 0 and inst.args[0] == "TIMEOUT":
                     self.statusmsg( "dnspython took too long to AXFR", 'error' )
-                else:
-                    raise inst
 
         return ret_dns_data
 
@@ -157,6 +155,14 @@ class xcname:
             self.statusmsg( 'No answer received from DNS server' )
         except dns.resolver.NXDOMAIN:
             self.statusmsg( 'NXDOMAIN, dead end' )
+        except dns.exception.Timeout:
+            self.statusmsg( 'Timeout!' )
+        except dns.resolver.NoNameservers:
+            self.statusmsg( 'All nameservers returned SERVFAIL')
+        except dns.name.NameTooLong:
+            self.statusmsg( 'DNS name too long!')
+        except:
+            self.statusmsg( 'Some other error occured.')
         return False
 
     def scan_cname( self, domain, initial = False ):
