@@ -75,10 +75,13 @@ class GandiAPI(DomainValidator):
         domain = domain.lower()
         ''' This is a blocking call to see if the domain is available '''
         if 10 <= count:
-            raise ValueError("Gandi API max retries exceeded")
+            return False
 
         ''' Put try block here '''
-        result = self.api.domain.available(self.api_key, [domain])
+        try:
+            result = self.api.domain.available(self.api_key, [domain])
+        except:
+            return False
         if result[domain] == 'pending':
             time.sleep(0.25)
             return self.is_available(domain, count=count + 1)
